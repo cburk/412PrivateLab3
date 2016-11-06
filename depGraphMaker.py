@@ -21,7 +21,7 @@ class GraphNode(object):
         return str(self.instrNum)
 
     def __str__(self):
-        retStr = "(" + str(self.instrNum) + " : ["
+        retStr = "(" + str(self.instrNum) + " : \n["
         if len(self.edgesOut) == 0:
             retStr += "  "
         else:
@@ -43,8 +43,6 @@ def getDependencyGraph(firstNode):
     farthestNode = None
 
     while thisInstr != None:
-        if instr == 6:
-            break
         instr += 1
 
         VRi = thisInstr.getResVR()
@@ -56,14 +54,13 @@ def getDependencyGraph(firstNode):
         print "Found instr: "
         print thisInstr.getVirtView()
 
-        thisNode = GraphNode(VRi)
-        M[VRi] = thisNode
+        thisNode = GraphNode(instr)
 
         # No need to add edges
         # TODO: Shouldn't we eliminate nop, probs before here?
         if opName == 'nop' or opName == 'loadl':
-            thisInstr = thisInstr.getNext()
-            continue
+            # do nothing
+            a = 1
         # Add edges, hard case.  Following slide 12 alg
         elif opName == 'load' or opName == 'store' or opName == 'output':
             nodesToConnectTo = []
@@ -96,14 +93,17 @@ def getDependencyGraph(firstNode):
                 for n in nodesToConnectTo:
                     pstr += n.justMeStr() + " "
                 print pstr + "]"
-                return 1
 
             thisNode.addEdgesInAndOut(nodesToConnectTo)
 
         # Arithop case, easy to add edges
         else:
+            print "Op: " + opName
             childNodes = [M[VRj1], M[VRj2]]
             thisNode.addEdgesInAndOut(childNodes)
+
+        # Have to do this at the end in case VRi is used to calc this op
+        M[VRi] = thisNode
 
         farthestNode = thisNode
         thisInstr = thisInstr.getNext()

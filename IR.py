@@ -66,4 +66,14 @@ class IRLink(object):
         self.table[-1] = a
     def setPrev(self, a):
         self.table[0] = a
-    
+
+    def getOpName(self):
+        return self.table[1]
+    def getUsedConst1(self):
+        return self.table[2]
+    def getUsedVR1(self):
+        return self.table[3]
+    def getUsedVR2(self):
+        return self.table[7]
+    def getResVR(self):
+        return self.table[11]
