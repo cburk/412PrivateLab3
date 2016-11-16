@@ -8,7 +8,7 @@ from frontend.parser import parseFile
 from backend.virtualizer import renameVirtRegisters
 from IR import IRLink
 from backend.allocator import allocatePRS
-from depGraphMaker import getDependencyGraph
+from depGraphMaker import getDependencyGraph, setRanks
 
 #print "Hello world!"
 
@@ -162,10 +162,17 @@ if len(argv) == 2:
             #print "Max vrn num after: " + str(maxVRNum)
 
         # Build dependency graph
-        root = getDependencyGraph(IRInst1)
-        print root
+        no_successors, no_predecessors = getDependencyGraph(IRInst1)
 
-        #Perform actual register allocation
+        # give every node a rank, using a bfs from the lines w/ no successors
+        setRanks(no_predecessors)
+
+        print "Found " + str(len(no_successors)) + " lines/nodes w/ no successors: "
+        for ns in no_successors:
+            ns.print_layered(0)
+
+
+            #Perform actual register allocation
         #allocatePRS(inIRForm[0], 8, 4)
         #allocatePRS(IRInst1, maxVRNum + 1, numRegisters)
 

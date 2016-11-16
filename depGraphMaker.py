@@ -13,6 +13,9 @@ class GraphNode(object):
         self.instrIR = instrIR; # Just so we know what's being defined, etc.
         self.edgesIn = []
         self.edgesOut = []
+        # As per John's answer to Implementing a priority function
+        self.rank = latencies[instrOp]
+        self.rankCalculated = False
 
     def getInstrOp(self):
         return self.instrOp
@@ -28,6 +31,11 @@ class GraphNode(object):
     def justMeStr(self):
         return str(self.instrNum)
 
+    def getSuccessors(self):
+        return self.edgesIn
+    def getPredecessors(self):
+        return self.edgesOut
+
     def __str__(self):
         retStr = "(" + str(self.instrNum) + " : \n["
         if len(self.edgesOut) == 0:
@@ -42,7 +50,7 @@ class GraphNode(object):
         retStr = ""
         for i in range(ind):
             retStr += '\t'
-        retStr += "(instr: " + str(self.instrNum) + " is " + self.instrOp + " which defines: " + str(self.regDefined) +": ["
+        retStr += "(instr: " + str(self.instrNum) + " is " + self.instrOp + " which defines: " + str(self.regDefined) + " Rank<" + str(self.rank) + ">: ["
         print retStr
         for child in self.edgesOut:
             print ("\t" * (ind + 1)) + "edge weight: " + str(child[1])
@@ -64,6 +72,7 @@ def getDependencyGraph(firstNode):
     mrOutput = None
     allLoadsAndOuts = []
     farthestNode = None
+    allNodes = []
 
     while thisInstr != None:
         instr += 1
@@ -81,6 +90,7 @@ def getDependencyGraph(firstNode):
             thisNode = GraphNode(instr, opName, -1, thisInstr)
         else:
             thisNode = GraphNode(instr, opName, VRi, thisInstr)
+        allNodes.append(thisNode)
 
         # No need to add edges
         # TODO: Shouldn't we eliminate nop, probs before here?
@@ -136,12 +146,24 @@ def getDependencyGraph(firstNode):
             thisNode.addEdgesInAndOut([[M[VRj2], latencies.get(M[VRj2].getInstrOp())]])
 
         # Have to do this at the end in case VRi is used to calc this op
-        M[VRi] = thisNode
+        # Q: What if no VRi?
+        if opName != "store" and opName != "nop" and opName != "output":
+            M[VRi] = thisNode
 
         farthestNode = thisNode
         thisInstr = thisInstr.getNext()
 
-    return farthestNode
+    #return farthestNode
+    # Now, make a pass over instructions, collect those w/ no successors
+    noSuccs = []
+    noPreds = []
+    for line in allNodes:
+        if len(line.getSuccessors()) == 0:
+            noSuccs.append(line)
+        if len(line.getPredecessors()) == 0:
+            noPreds.append(line)
+
+    return noSuccs, noPreds
 
 # Gameplan: second pass, give edges a weight (delay(op))
 #   possible now b/c we
@@ -154,3 +176,32 @@ def getDependencyGraph(firstNode):
 
 # afterwards, can implement scheduling alg, b/c we have delay(op), and all the things
 # an op is waiting on, and can easily (i think?) find the leaves
+
+# Starting w/ the nodes w/ no predecessors, set rank(node)=
+# "own latency to the max rank among its successors", using a dfs to calculate
+# its successors ranks
+def setRanks(thisLayerNodes):
+    for line in thisLayerNodes:
+        # keeps us from recalculating ranks
+        if line.rankCalculated:
+            continue
+
+        succs = line.getSuccessors()
+        # base case, rank is just it's latency, or original rank
+        if len(succs) == 0:
+            line.rankCalculated = True
+            continue
+        # otherwise, rank is max amongst its successors
+        # TODO: This might calculate the rank of a node many times over, is this avoidable?
+        # Thought is we could set a flag, but even then that doesn't seem very efficient
+        # May be worth revisiting
+        setRanks(succs)
+
+        maxRank = -1
+        maxLine = None
+        for succ in succs:
+            if succ.rank > maxRank:
+                maxRank = succ.rank
+
+        line.rank += maxRank
+        line.rankCalculated = True
