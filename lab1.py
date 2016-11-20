@@ -163,7 +163,7 @@ if len(argv) == 2:
             #print "Max vrn num after: " + str(maxVRNum)
 
         # Build dependency graph
-        no_successors, no_predecessors = getDependencyGraph(IRInst1)
+        no_successors, no_predecessors, instrOrdered = getDependencyGraph(IRInst1)
 
         # give every node a rank, using a bfs from the lines w/ no successors
         setRanks(no_predecessors)
@@ -176,9 +176,13 @@ if len(argv) == 2:
         for np in no_predecessors:
             np.print_layered(0)
 
-        scheduleInstructions(no_predecessors)
-        print "Over"
+        fullSched = scheduleInstructions(no_predecessors)
 
+        print "Scheduling finished"
+
+        for pair in fullSched:
+            pairStr = "[ " + instrOrdered[pair[0]] + " , " + instrOrdered[pair[1]] + " ]"
+            print pairStr
 
             #Perform actual register allocation
         #allocatePRS(inIRForm[0], 8, 4)

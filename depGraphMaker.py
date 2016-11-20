@@ -88,6 +88,8 @@ def getDependencyGraph(firstNode):
     farthestNode = None
     allNodes = []
 
+    instrOrdered = ["nop"]
+
     while thisInstr != None:
         instr += 1
 
@@ -99,6 +101,7 @@ def getDependencyGraph(firstNode):
 
         print "Found instr: "
         print thisInstr.getVirtView()
+        instrOrdered.append(thisInstr.getVirtView())
 
         if opName == 'output' or opName == 'store' or opName == 'nop':
             thisNode = GraphNode(instr, opName, -1, thisInstr)
@@ -177,7 +180,7 @@ def getDependencyGraph(firstNode):
         if len(line.getPredecessors()) == 0:
             noPreds.append(line)
 
-    return noSuccs, noPreds
+    return noSuccs, noPreds, instrOrdered
 
 # Gameplan: second pass, give edges a weight (delay(op))
 #   possible now b/c we

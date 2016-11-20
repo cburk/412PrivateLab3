@@ -4,41 +4,57 @@ latencies = {"store":5, "load":5, "mult":3, "loadl":1, "add":1, "sub":1, "lshift
 
 # TODO: this plan doesn't give a very good output.  For example, if nothing in F1 queue but F0 queue head loses
 # to a both, only both gets exec'd on F0 ( when it could be [F0head, bothhead]).  Think about it
-def bestFromEither(restrictedReadies, bothReadies, startCycle, thisCycle, Active):
-    fault = 0
-    if len(restrictedReadies) == 0:
-        topFRestr = None
+# Pop 2 from fBoth, 1 from f1 and f2 each.  rank (could use queue((rank, nodePtr, queuePtr)), then activate
+# remaining, return others to their queues
+def bestFromEither(restrictedReadies0, restrictedReadies1, bothReadies, startCycle, thisCycle, Active):
+    combQueue = []
+    if(len(restrictedReadies0)):
+        heappush(combQueue, heappop(restrictedReadies0))
+    if(len(restrictedReadies1)):
+        heappush(combQueue, heappop(restrictedReadies1))
+    if(len(bothReadies)):
+        heappush(combQueue, heappop(bothReadies))
+    if(len(bothReadies)):
+        heappush(combQueue, heappop(bothReadies))
+
+    # Choose two to be active
+    a1Nop = False
+    if(len(combQueue) != 0):
+        a1 = heappop(combQueue)
+        startCycle[a1[2]] = thisCycle
+        Active.append(a1[2])
     else:
-        topFRestr = heappop(restrictedReadies)
-    if len(bothReadies) == 0:
-        topBoth = None
+        a1Nop = True
+        a1 = "NOP"
+    a2Nop = False
+    if(len(combQueue) != 0):
+        a2 = heappop(combQueue)
+        startCycle[a2[2]] = thisCycle
+        Active.append(a2[2])
     else:
-        topBoth = heappop(bothReadies)
+        a2Nop = True
+        a2 = "NOP"
 
-    # if both queues are empty, don't do anything, nothing active this round
-    topBothNone = topBoth == None
-    topFRestrNone = topFRestr == None
-    if topFRestrNone and topBothNone:
-        return None
+    while len(combQueue) != 0:
+        backOn = heappop(combQueue)
+        oName = backOn[2].getInstrOp()
+        if oName == 'mult':
+            heappush(restrictedReadies1, backOn)
+        elif oName == 'load' or oName == 'store':
+            heappush(restrictedReadies0, backOn)
+        else:
+            heappush(bothReadies, backOn)
 
-    # Break ties in favor of constrained
-    if topBothNone or (not topFRestrNone and topFRestr[1].rank >= topBoth[1].rank):
-        startCycle[topFRestr[1]] = thisCycle
-        Active.append(topFRestr[1])
-        # we're not using the other one, have to push it
-        if not topBothNone:
-            heappush(bothReadies, topBoth)
-
-        return topFRestr
-    else:
-        startCycle[topBoth[1]] = thisCycle
-        Active.append(topBoth[1])
-        # we're not using the other one, have to push it
-        if not topFRestrNone:
-            heappush(restrictedReadies, topFRestr)
-
-        return topBoth
-
+    # Put them in the correct order
+    if a2Nop and a1Nop:
+        return (a1,a2)
+    if a2Nop:
+        if a1[2].getInstrOp() == 'mult':
+            return (a1,a2)
+        return [a1,a2]
+    if a2[2].getInstrOp() == 'mult':
+        return (a1,a2)
+    return (a1,a2)
 
 """
 Slide 16 alg (from primer?), not textbook
@@ -57,27 +73,38 @@ def scheduleInstructions(no_preds):
     for instr in no_preds:
         instr.notOnQueue = False
         if instr.getInstrOp() == "load" or instr.getInstrOp == "store":
-            heappush(readyHeapF0, (instr.rank, instr))
+            heappush(readyHeapF0, (instr.rank, 1, instr))
         elif instr.getInstrOp() == "mult":
-            heappush(readyHeapF1, (instr.rank, instr))
+            heappush(readyHeapF1, (instr.rank, 1, instr))
         else:
-            heappush(readyHeapBoth, (instr.rank, instr))
+            heappush(readyHeapBoth, (instr.rank, 0, instr))
 
 
     startCycle = {}
 
     cycle = 1
+    fullSchedule = []
 
     while(len(Active) != 0 or len(readyHeapBoth) != 0 or len(readyHeapF0) != 0 or len(readyHeapF1) != 0):
         # foreach functional unit, start executing the highest priority instr that's ready
-        thisCycleF0 = bestFromEither(readyHeapF0, readyHeapBoth, startCycle, cycle, Active)
-        thisCycleF1 = bestFromEither(readyHeapF1, readyHeapBoth, startCycle, cycle, Active)
+        [thisCycleF0, thisCycleF1] = bestFromEither(readyHeapF0, readyHeapF1, readyHeapBoth, startCycle, cycle, Active)
 
+
+        thisIter = []
         print "Main Cycle Space: " + str(cycle)
-        if thisCycleF0 != None:
-            print "F0 new op: " + str(thisCycleF0) + ", instr#: " + str(thisCycleF0[1].instrNum)
-        if thisCycleF1 != None:
-            print "F1 new op: " + str(thisCycleF1) + ", instr#: " + str(thisCycleF1[1].instrNum)
+        if thisCycleF0 != "NOP":
+            print "F0 new op: " + str(thisCycleF0) + ", instr#: " + str(thisCycleF0[2].instrNum)
+            thisIter.append(thisCycleF0[2].instrNum)
+        else:
+            print "F0 new op: NOP"
+            thisIter.append(0)
+        if thisCycleF1 != "NOP":
+            print "F1 new op: " + str(thisCycleF1) + ", instr#: " + str(thisCycleF1[2].instrNum)
+            thisIter.append(thisCycleF1[2].instrNum)
+        else:
+            print "F1 new op: NOP"
+            thisIter.append(0)
+        fullSchedule.append(thisIter)
 
         cycle += 1
 
@@ -104,11 +131,11 @@ def scheduleInstructions(no_preds):
                         # choose which ready queue to put it in based on opName
                         succName = successorInstr.getInstrOp()
                         if succName == "load" or instr.getInstrOp() == "store":
-                            heappush(readyHeapF0, (successorInstr.rank, successorInstr))
+                            heappush(readyHeapF0, (successorInstr.rank, 1, successorInstr))
                         elif succName == "mult":
-                            heappush(readyHeapF1, (successorInstr.rank, successorInstr))
+                            heappush(readyHeapF1, (successorInstr.rank, 1, successorInstr))
                         else:
-                            heappush(readyHeapBoth, (successorInstr.rank, successorInstr))
+                            heappush(readyHeapBoth, (successorInstr.rank, 0, successorInstr))
                     else:
                         # TODO: For debugging, remove
                         #print "Num still waiting on: " + str(len(successorInstr.getPredecessors()))
@@ -128,14 +155,16 @@ def scheduleInstructions(no_preds):
                         # choose which ready queue to put it in based on opName
                         succName = successorInstr.getInstrOp()
                         if succName == "load" or instr.getInstrOp() == "store":
-                            heappush(readyHeapF0, (successorInstr.rank, successorInstr))
+                            heappush(readyHeapF0, (successorInstr.rank, 1, successorInstr))
                         elif succName == "mult":
-                            heappush(readyHeapF1, (successorInstr.rank, successorInstr))
+                            heappush(readyHeapF1, (successorInstr.rank, 1, successorInstr))
                         else:
-                            heappush(readyHeapBoth, (successorInstr.rank, successorInstr))
+                            heappush(readyHeapBoth, (successorInstr.rank, 0, successorInstr))
         # update actives list w/ finished ones
         for act in activesToRemove:
             Active.remove(act)
+
+    return fullSchedule
 
     # Thought: return value could prob just be startCycle, minimal intuition into which is which
     # alternatively, we could just create as we go along.  Start seems ok for now tho
