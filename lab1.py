@@ -9,6 +9,7 @@ from backend.virtualizer import renameVirtRegisters
 from IR import IRLink
 from backend.allocator import allocatePRS
 from depGraphMaker import getDependencyGraph, setRanks
+from scheduler import scheduleInstructions
 
 #print "Hello world!"
 
@@ -170,6 +171,13 @@ if len(argv) == 2:
         print "Found " + str(len(no_successors)) + " lines/nodes w/ no successors: "
         for ns in no_successors:
             ns.print_layered(0)
+
+        print "Found " + str(len(no_predecessors)) + " lines w/ no predecessors: "
+        for np in no_predecessors:
+            np.print_layered(0)
+
+        scheduleInstructions(no_predecessors)
+        print "Over"
 
 
             #Perform actual register allocation

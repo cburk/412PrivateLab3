@@ -16,6 +16,20 @@ class GraphNode(object):
         # As per John's answer to Implementing a priority function
         self.rank = latencies[instrOp]
         self.rankCalculated = False
+        # Keep this instr from getting set twice
+        self.notOnQueue = True
+
+    def notWaitingOn(self, op, timePassed):
+        removingInd = -1
+        ind = 0
+        # TODO: Probably have to test equality here pretty thoroughly
+        for predEdge in self.edgesOut:
+            if predEdge[0]== op and predEdge[1] == timePassed:
+                removingInd = ind
+                break
+            ind += 1
+        if removingInd != -1:
+            del self.edgesOut[removingInd]
 
     def getInstrOp(self):
         return self.instrOp
@@ -23,7 +37,7 @@ class GraphNode(object):
     def addEdgesInAndOut(self, children):
         for child in children:
             self.edgesOut.append(child)
-            child[0].addEdgesIn(self)
+            child[0].addEdgesIn([self, child[1]])
 
     def addEdgesIn(self, nodeFrom):
         self.edgesIn.append(nodeFrom)
@@ -195,11 +209,18 @@ def setRanks(thisLayerNodes):
         # TODO: This might calculate the rank of a node many times over, is this avoidable?
         # Thought is we could set a flag, but even then that doesn't seem very efficient
         # May be worth revisiting
-        setRanks(succs)
+
+        # also nodes passed in, successors are edges
+        succsNodes = []
+        for edge in succs:
+            succsNodes.append(edge[0])
+        #setRanks(succs)
+        setRanks(succsNodes)
 
         maxRank = -1
         maxLine = None
-        for succ in succs:
+        #for succ in succs:
+        for succ in succsNodes:
             if succ.rank > maxRank:
                 maxRank = succ.rank
 
