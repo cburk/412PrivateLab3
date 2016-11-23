@@ -236,7 +236,7 @@ def getNextToken(myFile):
         elif thisChar == '/':
             thisChar = myFile.read(1)
             if thisChar == '/':
-                while thisChar != '\n':
+                while thisChar != '\n' and len(thisChar) != 0:
                     thisChar = myFile.read(1)
             else:
                 print "Unexpected character '/'"
