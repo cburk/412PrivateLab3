@@ -143,6 +143,8 @@ def parseFile(filename):
             break
         thisToken = pair[0]
         thisValue = pair[1]
+
+        #print thisValue
         
 
         # Best token printing b/c reg + comma hack breaks

@@ -91,18 +91,18 @@ def scheduleInstructions(no_preds):
 
 
         thisIter = []
-        print "Main Cycle Space: " + str(cycle)
+        #print "Main Cycle Space: " + str(cycle)
         if thisCycleF0 != "NOP":
-            print "F0 new op: " + str(thisCycleF0) + ", instr#: " + str(thisCycleF0[2].instrNum)
+            #print "F0 new op: " + str(thisCycleF0) + ", instr#: " + str(thisCycleF0[2].instrNum)
             thisIter.append(thisCycleF0[2].instrNum)
         else:
-            print "F0 new op: NOP"
+            #print "F0 new op: NOP"
             thisIter.append(0)
         if thisCycleF1 != "NOP":
-            print "F1 new op: " + str(thisCycleF1) + ", instr#: " + str(thisCycleF1[2].instrNum)
+            #print "F1 new op: " + str(thisCycleF1) + ", instr#: " + str(thisCycleF1[2].instrNum)
             thisIter.append(thisCycleF1[2].instrNum)
         else:
-            print "F1 new op: NOP"
+            #print "F1 new op: NOP"
             thisIter.append(0)
         fullSchedule.append(thisIter)
 

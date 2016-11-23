@@ -126,9 +126,15 @@ def getNextToken(myFile):
             elif ord(thisChar) >= 48 and ord(thisChar) <= 57:
                 thisNum = int(thisChar)
                 thisChar = myFile.read(1)
+
+                if len(thisChar) == 0:
+                    return [REGISTER, thisNum]
                 while(ord(thisChar) >= 48 and ord(thisChar) <= 57):
                     thisNum = 10 * thisNum + int(thisChar)
                     thisChar = myFile.read(1)
+                    if len(thisChar) == 0:
+                        return [REGISTER, thisNum]
+
                 #print "Scanner found register: r" + str(thisNum)
                 #print "Also found next char: " + thisChar
                 #Hacky workaround,necessary b/c we've already read this char

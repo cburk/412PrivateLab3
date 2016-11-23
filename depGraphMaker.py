@@ -99,8 +99,8 @@ def getDependencyGraph(firstNode):
 
         opName = thisInstr.getOpName()
 
-        print "Found instr: "
-        print thisInstr.getVirtView()
+        #print "Found instr: "
+        #print thisInstr.getVirtView()
         instrOrdered.append(thisInstr.getVirtView())
 
         if opName == 'output' or opName == 'store' or opName == 'nop':
@@ -156,7 +156,7 @@ def getDependencyGraph(firstNode):
 
         # Arithop case, easy to add edges
         else:
-            print "Op: " + opName
+            #print "Op: " + opName
             #childNodes = [M[VRj1], M[VRj2]]
             #thisNode.addEdgesInAndOut(childNodes)
             thisNode.addEdgesInAndOut([[M[VRj1], latencies.get(M[VRj1].getInstrOp())]])
