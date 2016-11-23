@@ -32,13 +32,14 @@ if len(argv) == 2:
         #Renaming to virt registers, fill in live ranges
         renameVirtRegisters(IRInst1, IRInstFinal, numLines, maxSRnum)
 
-        #print "After renaming:"
+        print "After renaming:"
         curInst = IRInst1
         while(curInst != None):
             thisTable = curInst.getTable()
-            #print "This table: " + str(thisTable)
+            print "This table: " + str(thisTable)
             curInst = curInst.getNext()
             #print "Renaming view over,"
+
 
         #print "Max vrn num before: NA"
         maxVRNum = 0
@@ -53,6 +54,44 @@ if len(argv) == 2:
                 maxVRNum = thisTable[11]
             curInst = curInst.getNext()
             #print "Max vrn num after: " + str(maxVRNum)
+
+        # Keep track of value stored in known vr's
+        VRToValue = {}
+        for i in range(maxVRNum):
+            VRToValue[i] = -1
+        ValueToVR = {}
+        curInst = IRInst1
+        while(curInst != None):
+            thisTable = curInst.getTable()
+            thisOpName = curInst.getOpName()
+
+            if thisOpName == 'nop':
+                # do nothing
+                1 + 1
+            elif thisOpName == 'loadl':
+                VRToValue[curInst.getResVR()] = thisTable[2]
+                print 'loadI ' + str(thisTable[2]) + " into " + str(curInst.getResVR())
+            elif thisOpName == 'add' or thisOpName == 'sub' or thisOpName == 'mult' or thisOpName == 'lshift' or thisOpName == 'rshift':
+                # If the registers used have known values, calc:
+                valOneVR = VRToValue[curInst.getUsedVR1()]
+                valOtherVR = VRToValue[curInst.getUsedVR2()]
+                if valOneVR != -1 and valOtherVR != -1:
+                    nameResVR = curInst.getResVR()
+                    if thisOpName == 'add':
+                        VRToValue[nameResVR] = valOneVR + valOtherVR
+                    if thisOpName == 'sub':
+                        VRToValue[nameResVR] = valOneVR - valOtherVR
+                    if thisOpName == 'mult':
+                        VRToValue[nameResVR] = valOtherVR * valOneVR
+                    if thisOpName == 'lshift':
+                        VRToValue[nameResVR] = valOneVR << valOtherVR
+                    if thisOpName == 'rshift':
+                        VRToValue[nameResVR] = valOneVR >> valOtherVR
+                print thisOpName + " sets " + str(nameResVR) + " = " + str(VRToValue[nameResVR])
+
+            curInst = curInst.getNext()
+
+
 
         # Build dependency graph
         no_successors, no_predecessors, instrOrdered = getDependencyGraph(IRInst1)
