@@ -18,6 +18,7 @@ class GraphNode(object):
         self.rankCalculated = False
         # Keep this instr from getting set twice
         self.notOnQueue = True
+        self.startInstr = -1 # Right now, only for stores
 
     def notWaitingOn(self, op, timePassed):
         removingInd = -1
@@ -75,14 +76,14 @@ class GraphNode(object):
         print retStr + "])"
 
 
-def getDependencyGraph(firstNode):
+def getDependencyGraph(firstNode, VRToValue, ValueToVR):
     instr = 0
     thisInstr = firstNode
     # VR->nodes
     M = {}
 
     # All actual nodes
-    mrStore = None # mr means most recent
+    mrStores = [] # mr means most recent
     mrOutput = None
     allLoadsAndOuts = []
     farthestNode = None
@@ -109,6 +110,8 @@ def getDependencyGraph(firstNode):
             thisNode = GraphNode(instr, opName, VRi, thisInstr)
         allNodes.append(thisNode)
 
+        thisNode.startInstr = instr
+
         # No need to add edges
         # TODO: Shouldn't we eliminate nop, probs before here?
         if opName == 'nop' or opName == 'loadl':
@@ -119,8 +122,21 @@ def getDependencyGraph(firstNode):
             nodesToConnectTo = []
             # Load and output need an edge to most recent store
             if opName == 'load' or opName == 'output':
-                if mrStore != None:
-                    nodesToConnectTo.append([mrStore, 5])
+                #if mrStore != None:
+                # Probably need to check the last few stores, or all stores still live
+                if opName == 'load':
+                    for mrStore in mrStores:
+                        lastStoreAt = VRToValue[mrStore.instrIR.getTable()[7]]
+                        if lastStoreAt == VRToValue[VRj1]:
+                            nodesToConnectTo.append([mrStore, 5])
+                #Similar for output
+                else:
+                    print "Setting store edges for outputs"
+                    for mrStore in mrStores:
+                        lastStoreAt = VRToValue[mrStore.instrIR.getTable()[7]]
+                        if lastStoreAt == thisInstr.getUsedConst1():
+                            print "Needed to add edge b/c store to " + str(thisInstr.getUsedConst1()) + " = " + str(lastStoreAt) + " (vr" + str(mrStore.instrIR.getTable()[7]) + ")"
+                            nodesToConnectTo.append([mrStore, 5])
                 allLoadsAndOuts.append(thisNode)
             # If just load, remember it depends on first op's vr
             if opName == 'load':
@@ -133,9 +149,19 @@ def getDependencyGraph(firstNode):
                 mrOutput = thisNode
             # Store needs an edge to most rec store, as well as all prev load and out
             if opName == 'store':
-                if mrStore != None:
-                    nodesToConnectTo.append([mrStore, 1])
-                mrStore = thisNode
+                # TODO: Fix, mrStores vs 1 mrStore
+                if len(mrStores) != 0:
+                    nodesToConnectTo.append([mrStores[-1], 1])
+                #for mrStore in mrStores:
+                #    lastStoreAt = VRToValue[mrStore.instrIR.getTable()[7]]
+                #    if lastStoreAt == VRToValue[VRj2]:
+                #        print "Storing to same store (" + str(lastStoreAt) + ")"
+                #        print "Edge required for instr: " + thisInstr.getVirtView()
+                #        nodesToConnectTo.append([mrStore, 1])
+
+
+                #mrStore = thisNode
+                mrStores.append(thisNode)
 
                 #nodesToConnectTo += allLoadsAndOuts
                 for loadOrOut in allLoadsAndOuts:
@@ -166,6 +192,12 @@ def getDependencyGraph(firstNode):
         # Q: What if no VRi?
         if opName != "store" and opName != "nop" and opName != "output":
             M[VRi] = thisNode
+
+        # Trim MRStores if they're done executing
+        # Todo: Thought: don't actually use this instr#, b/c it's not necessarily when it'll be scheduled
+        #for mrStore in mrStores:
+        #    if mrStore.startInstr <= instr - 5:
+        #        mrStores.remove(mrStore)
 
         farthestNode = thisNode
         thisInstr = thisInstr.getNext()

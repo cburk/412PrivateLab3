@@ -34,10 +34,13 @@ if len(argv) == 2:
 
         print "After renaming:"
         curInst = IRInst1
+        instNum = 1
         while(curInst != None):
             thisTable = curInst.getTable()
-            print "This table: " + str(thisTable)
+            #print "This table: " + str(thisTable)
+            print str(instNum) + " : " + curInst.getVirtView()
             curInst = curInst.getNext()
+            instNum += 1
             #print "Renaming view over,"
 
 
@@ -79,6 +82,12 @@ if len(argv) == 2:
                     nameResVR = curInst.getResVR()
                     if thisOpName == 'add':
                         VRToValue[nameResVR] = valOneVR + valOtherVR
+                        # TODO: general pattern of how to make these
+                        opRes = valOneVR + valOtherVR
+                        if opRes in ValueToVR.keys():
+                            ValueToVR[opRes].append(nameResVR)
+                        else:
+                            ValueToVR[opRes] = [nameResVR]
                     if thisOpName == 'sub':
                         VRToValue[nameResVR] = valOneVR - valOtherVR
                     if thisOpName == 'mult':
@@ -87,14 +96,14 @@ if len(argv) == 2:
                         VRToValue[nameResVR] = valOneVR << valOtherVR
                     if thisOpName == 'rshift':
                         VRToValue[nameResVR] = valOneVR >> valOtherVR
-                print thisOpName + " sets " + str(nameResVR) + " = " + str(VRToValue[nameResVR])
+                    print thisOpName + " sets " + str(nameResVR) + " = " + str(VRToValue[nameResVR])
 
             curInst = curInst.getNext()
 
 
 
         # Build dependency graph
-        no_successors, no_predecessors, instrOrdered = getDependencyGraph(IRInst1)
+        no_successors, no_predecessors, instrOrdered = getDependencyGraph(IRInst1, VRToValue, ValueToVR)
 
         # give every node a rank, using a bfs from the lines w/ no successors
         setRanks(no_predecessors)
