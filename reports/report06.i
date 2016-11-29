@@ -11,7 +11,7 @@
 // the second is the incrementor.
 //
 // Expects input values at 1024 and 1028 (for example, 1 and 1)
-// Usage before scheduling: ./sim -s 3 -i 1024 n n < report06.i
+// Usage before scheduling: ./sim -s 1 -i 1024 n n < report06.i
 //
 loadI	1032	=> r1
 loadI	1024	=> r10

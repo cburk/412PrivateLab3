@@ -127,14 +127,14 @@ def getDependencyGraph(firstNode, VRToValue, ValueToVR):
                 if opName == 'load':
                     for mrStore in mrStores:
                         lastStoreAt = VRToValue[mrStore.instrIR.getTable()[7]]
-                        if lastStoreAt == VRToValue[VRj1]:
+                        if lastStoreAt == VRToValue[VRj1] or lastStoreAt == -1:
                             nodesToConnectTo.append([mrStore, 5])
                 #Similar for output
                 else:
                     print "Setting store edges for outputs"
                     for mrStore in mrStores:
                         lastStoreAt = VRToValue[mrStore.instrIR.getTable()[7]]
-                        if lastStoreAt == thisInstr.getUsedConst1():
+                        if lastStoreAt == thisInstr.getUsedConst1() or lastStoreAt == -1:
                             print "Needed to add edge b/c store to " + str(thisInstr.getUsedConst1()) + " = " + str(lastStoreAt) + " (vr" + str(mrStore.instrIR.getTable()[7]) + ")"
                             nodesToConnectTo.append([mrStore, 5])
                 allLoadsAndOuts.append(thisNode)
@@ -144,17 +144,16 @@ def getDependencyGraph(firstNode, VRToValue, ValueToVR):
             # Output needs an edge to most recent output
             if opName == 'output':
                 if mrOutput != None:
-                    # TODO: If outputs come out mangled, probs need t oset this to 5
                     nodesToConnectTo.append([mrOutput, 1])
                 mrOutput = thisNode
             # Store needs an edge to most rec store, as well as all prev load and out
             if opName == 'store':
                 #if len(mrStores) != 0:
                 #    nodesToConnectTo.append([mrStores[-1], 1])
-                # TODO: This was broken before, but maybe fixed now.  Verify
+                # TODO: May be necessary to say if lastStore == <our value> or lastStore = -1, b/c then it could be anything
                 for mrStore in mrStores:
                     lastStoreAt = VRToValue[mrStore.instrIR.getTable()[7]]
-                    if lastStoreAt == VRToValue[VRj2]:
+                    if lastStoreAt == VRToValue[VRj2] or lastStoreAt == -1:
                         print "Storing to same store (" + str(lastStoreAt) + ")"
                         print "Edge required for instr: " + thisInstr.getVirtView()
                         nodesToConnectTo.append([mrStore, 1])
@@ -166,6 +165,10 @@ def getDependencyGraph(firstNode, VRToValue, ValueToVR):
                 #nodesToConnectTo += allLoadsAndOuts
                 for loadOrOut in allLoadsAndOuts:
                     nodesToConnectTo.append([loadOrOut, 1])
+
+                """
+                Should be trimming, seems to make worse/incorrect
+                """
 
                 # store uses both of the op vr's
                 #nodesToConnectTo += [M[VRj1], M[VRj2]]

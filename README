@@ -1,0 +1,11 @@
+//NAME: Christian Burkhartsmeyer
+//NETID: cjb6
+
+To run this scheduler, use the command schedule.  For example:
+./schedule example.ilocFilename.i
+
+The scheduler can be run with two possible arguments.  These are:
+schedule -h (Lists these possible arguments)
+schedule <filename> (Performs scheduling on the iloc file specified by filename)
+
+It is not necessary to build the code before running it.

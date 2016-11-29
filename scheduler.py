@@ -7,6 +7,21 @@ latencies = {"store":5, "load":5, "mult":3, "loadl":1, "add":1, "sub":1, "lshift
 # Pop 2 from fBoth, 1 from f1 and f2 each.  rank (could use queue((rank, nodePtr, queuePtr)), then activate
 # remaining, return others to their queues
 def bestFromEither(restrictedReadies0, restrictedReadies1, bothReadies, startCycle, thisCycle, Active):
+     # Check if queue composition is correct
+     # TODO: Absolutely remove before submitting
+    """
+    for a in restrictedReadies0:
+        if a[2].getInstrOp() != 'load' and a[2].getInstrOp() != 'store':
+            print "!!!Found bad op in rr0: " + a[2].getInstrOp()
+    for a in restrictedReadies1:
+        if a[2].getInstrOp() != 'mult':
+            print "!!!Found bad op in rr1: " + a[2].getInstrOp()
+    for a in bothReadies:
+        name = a[2].getInstrOp()
+        if name == 'load' or name =='mul' or name=='store':
+            print "!!!Found bad op in bothqueue: " + name
+    """
+
     combQueue = []
     print "Picking bests"
     if(len(restrictedReadies0) != 0):
