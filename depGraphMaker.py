@@ -149,15 +149,15 @@ def getDependencyGraph(firstNode, VRToValue, ValueToVR):
                 mrOutput = thisNode
             # Store needs an edge to most rec store, as well as all prev load and out
             if opName == 'store':
-                # TODO: Fix, mrStores vs 1 mrStore
-                if len(mrStores) != 0:
-                    nodesToConnectTo.append([mrStores[-1], 1])
-                #for mrStore in mrStores:
-                #    lastStoreAt = VRToValue[mrStore.instrIR.getTable()[7]]
-                #    if lastStoreAt == VRToValue[VRj2]:
-                #        print "Storing to same store (" + str(lastStoreAt) + ")"
-                #        print "Edge required for instr: " + thisInstr.getVirtView()
-                #        nodesToConnectTo.append([mrStore, 1])
+                #if len(mrStores) != 0:
+                #    nodesToConnectTo.append([mrStores[-1], 1])
+                # TODO: This was broken before, but maybe fixed now.  Verify
+                for mrStore in mrStores:
+                    lastStoreAt = VRToValue[mrStore.instrIR.getTable()[7]]
+                    if lastStoreAt == VRToValue[VRj2]:
+                        print "Storing to same store (" + str(lastStoreAt) + ")"
+                        print "Edge required for instr: " + thisInstr.getVirtView()
+                        nodesToConnectTo.append([mrStore, 1])
 
 
                 #mrStore = thisNode
