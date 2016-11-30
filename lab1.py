@@ -32,13 +32,13 @@ if len(argv) == 2:
         #Renaming to virt registers, fill in live ranges
         renameVirtRegisters(IRInst1, IRInstFinal, numLines, maxSRnum)
 
-        print "After renaming:"
+        #print "After renaming:"
         curInst = IRInst1
         instNum = 1
         while(curInst != None):
             thisTable = curInst.getTable()
             #print "This table: " + str(thisTable)
-            print str(instNum) + " : " + curInst.getVirtView()
+            #print str(instNum) + " : " + curInst.getVirtView()
             curInst = curInst.getNext()
             instNum += 1
             #print "Renaming view over,"
@@ -60,7 +60,7 @@ if len(argv) == 2:
 
         # Keep track of value stored in known vr's
         VRToValue = {}
-        for i in range(maxVRNum):
+        for i in range(maxVRNum + 1):
             VRToValue[i] = -1
         ValueToVR = {}
         curInst = IRInst1
@@ -73,9 +73,11 @@ if len(argv) == 2:
                 1 + 1
             elif thisOpName == 'loadl':
                 VRToValue[curInst.getResVR()] = thisTable[2]
-                print 'loadI ' + str(thisTable[2]) + " into " + str(curInst.getResVR())
+                #print 'loadI ' + str(thisTable[2]) + " into " + str(curInst.getResVR())
             elif thisOpName == 'add' or thisOpName == 'sub' or thisOpName == 'mult' or thisOpName == 'lshift' or thisOpName == 'rshift':
                 # If the registers used have known values, calc:
+                #print "hereherehere"
+                #print curInst.getVirtView()
                 valOneVR = VRToValue[curInst.getUsedVR1()]
                 valOtherVR = VRToValue[curInst.getUsedVR2()]
                 if valOneVR != -1 and valOtherVR != -1:

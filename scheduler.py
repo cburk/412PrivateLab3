@@ -23,18 +23,18 @@ def bestFromEither(restrictedReadies0, restrictedReadies1, bothReadies, startCyc
     """
 
     combQueue = []
-    print "Picking bests"
+    #print "Picking bests"
     if(len(restrictedReadies0) != 0):
-        print "rr 0choice 1: " + str(restrictedReadies0[0][2].instrIR.getVirtView())
+        #print "rr 0choice 1: " + str(restrictedReadies0[0][2].instrIR.getVirtView())
         heappush(combQueue, heappop(restrictedReadies0))
     if(len(restrictedReadies1) != 0):
-        print "rr1 choice 1: " + str(restrictedReadies1[0][2].instrIR.getVirtView())
+        #print "rr1 choice 1: " + str(restrictedReadies1[0][2].instrIR.getVirtView())
         heappush(combQueue, heappop(restrictedReadies1))
     if(len(bothReadies) != 0):
-        print "both choice 1: " + str(bothReadies[0][2].instrIR.getVirtView())
+        #print "both choice 1: " + str(bothReadies[0][2].instrIR.getVirtView())
         heappush(combQueue, heappop(bothReadies))
     if(len(bothReadies) != 0):
-        print "both choice 2: " + str(bothReadies[0][2].instrIR.getVirtView())
+        #print "both choice 2: " + str(bothReadies[0][2].instrIR.getVirtView())
         heappush(combQueue, heappop(bothReadies))
 
     # Choose two to be active
@@ -150,7 +150,7 @@ def scheduleInstructions(no_preds):
                         successorInstr.notOnQueue = False
                         # choose which ready queue to put it in based on opName
                         succName = successorInstr.getInstrOp()
-                        print "Succname: " + succName
+                        #print "Succname: " + succName
                         # Change: pretty sure should be checking succName
                         #if succName == "load" or instr.getInstrOp() == "store":
                         if succName == "load" or succName == "store":
@@ -158,7 +158,7 @@ def scheduleInstructions(no_preds):
                         elif succName == "mult":
                             heappush(readyHeapF1, (successorInstr.rank, 1, successorInstr))
                         else:
-                            print "bothpush B"
+                            #print "bothpush B"
                             heappush(readyHeapBoth, (successorInstr.rank, 0, successorInstr))
                     else:
                         # TODO: For debugging, remove
@@ -178,13 +178,13 @@ def scheduleInstructions(no_preds):
                         successorInstr.notOnQueue = False
                         # choose which ready queue to put it in based on opName
                         succName = successorInstr.getInstrOp()
-                        print "Succname: " + str(succName)
+                        #print "Succname: " + str(succName)
                         if succName == "load" or succName == "store":
                             heappush(readyHeapF0, (successorInstr.rank, 1, successorInstr))
                         elif succName == "mult":
                             heappush(readyHeapF1, (successorInstr.rank, 1, successorInstr))
                         else:
-                            print "bothpush A"
+                            #print "bothpush A"
                             heappush(readyHeapBoth, (successorInstr.rank, 0, successorInstr))
         # update actives list w/ finished ones
         for act in activesToRemove:

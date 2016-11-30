@@ -131,11 +131,11 @@ def getDependencyGraph(firstNode, VRToValue, ValueToVR):
                             nodesToConnectTo.append([mrStore, 5])
                 #Similar for output
                 else:
-                    print "Setting store edges for outputs"
+                    #print "Setting store edges for outputs"
                     for mrStore in mrStores:
                         lastStoreAt = VRToValue[mrStore.instrIR.getTable()[7]]
                         if lastStoreAt == thisInstr.getUsedConst1() or lastStoreAt == -1:
-                            print "Needed to add edge b/c store to " + str(thisInstr.getUsedConst1()) + " = " + str(lastStoreAt) + " (vr" + str(mrStore.instrIR.getTable()[7]) + ")"
+                            #print "Needed to add edge b/c store to " + str(thisInstr.getUsedConst1()) + " = " + str(lastStoreAt) + " (vr" + str(mrStore.instrIR.getTable()[7]) + ")"
                             nodesToConnectTo.append([mrStore, 5])
                 allLoadsAndOuts.append(thisNode)
             # If just load, remember it depends on first op's vr
@@ -154,8 +154,8 @@ def getDependencyGraph(firstNode, VRToValue, ValueToVR):
                 for mrStore in mrStores:
                     lastStoreAt = VRToValue[mrStore.instrIR.getTable()[7]]
                     if lastStoreAt == VRToValue[VRj2] or lastStoreAt == -1:
-                        print "Storing to same store (" + str(lastStoreAt) + ")"
-                        print "Edge required for instr: " + thisInstr.getVirtView()
+                        #print "Storing to same store (" + str(lastStoreAt) + ")"
+                        #print "Edge required for instr: " + thisInstr.getVirtView()
                         nodesToConnectTo.append([mrStore, 1])
 
 
@@ -165,9 +165,8 @@ def getDependencyGraph(firstNode, VRToValue, ValueToVR):
                 #nodesToConnectTo += allLoadsAndOuts
                 for loadOrOut in allLoadsAndOuts:
                     nodesToConnectTo.append([loadOrOut, 1])
-
                 """
-                Should be trimming, seems to make worse/incorrect
+                Should be trimming ^, seems to make worse/incorrect
                 """
 
                 # store uses both of the op vr's
